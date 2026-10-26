@@ -1,19 +1,31 @@
 return {
-  "sainnhe/everforest",
+  "catppuccin/nvim",
+  name = "catppuccin",
   lazy = false,    -- Make sure the theme loads immediately on startup
   priority = 1000, -- Load this before any other plugins
   config = function()
-    -- OPTIONAL CONFIGURATION OPTIONS (Put these before loading the colorscheme)
-    -- Available contrasts: 'hard', 'medium', 'soft'
-    vim.g.everforest_background = "medium" 
-    
-    -- Enable italic text support for comments/keywords
-    vim.g.everforest_enable_italic = 1
-    
-    -- Optimizes loading performance
-    vim.g.everforest_better_performance = 1
+    require("catppuccin").setup({
+      -- Mocha matches kitty/current-theme.conf
+      flavour = "mocha",
+
+      -- Set to true to let kitty's background_opacity show through
+      transparent_background = false,
+
+      styles = {
+        comments = { "italic" },
+        keywords = { "italic" },
+      },
+
+      -- Theme the plugins in lua/plugins/
+      integrations = {
+        gitsigns = true,
+        neotree = true,
+        telescope = { enabled = true },
+        scrollbar = true,
+      },
+    })
 
     -- Load the colorscheme
-    vim.cmd([[colorscheme everforest]])
+    vim.cmd([[colorscheme catppuccin]])
   end,
 }

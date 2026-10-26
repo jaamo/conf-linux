@@ -17,14 +17,14 @@ return {
         show = true,
         handle = {
           text = " ",
-          color = "#555555", -- The actual scrollbar handle color
+          color = "#45475A", -- The actual scrollbar handle color (Mocha surface1)
           hide_if_all_visible = true,
         },
         marks = {
           -- Enable Git indicators on the scrollbar track
-          GitAdd = { text = "┃", priority = 7, color = "#A3BE8C" },
-          GitChange = { text = "┃", priority = 7, color = "#EBCB8B" },
-          GitDelete = { text = "┃", priority = 7, color = "#BF616A" },
+          GitAdd = { text = "┃", priority = 7, color = "#A6E3A1" },
+          GitChange = { text = "┃", priority = 7, color = "#F9E2AF" },
+          GitDelete = { text = "┃", priority = 7, color = "#F38BA8" },
         },
         handlers = {
           gitsigns = true, -- Turn on the Git integration
