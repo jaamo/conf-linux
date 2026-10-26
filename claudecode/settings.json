@@ -2,7 +2,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "fable",
+  "model": "opus",
   "enabledPlugins": {
     "chrome-devtools-mcp@chrome-devtools-plugins": true,
     "gitkraken-hooks@gitkraken": false

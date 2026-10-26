@@ -26,6 +26,12 @@ getresolved issue done GET-005 "Shipped in commit abc123 — fixed by …"
 
 This writes the note onto the issue's `resolution_comment` and is private to the workspace. Customers linked to the issue are **not** notified — they only hear about the fix later through a release announcement, when the user explicitly creates one.
 
+For a running log while you work (as opposed to the final resolution note), post to the issue's activity thread — also private to the workspace:
+
+```bash
+getresolved issue comment GET-005 --body="Root cause: the footer link was hardcoded; fixing in footer.js"
+```
+
 ## Self-update is automatic
 
 The `getresolved` CLI runs a 24h-cooldown check on every invocation: it silently refreshes this slash command from the server and prints an "Update available" notice to stdout when a newer CLI version is on npm. You don't need to trigger anything.
@@ -92,11 +98,27 @@ getresolved issue update GET-005 --comment="Fixed by reverting commit abc"
 
 # Status shortcuts (preferred — terse + correct semantics)
 getresolved issue start    GET-005
+getresolved issue review   GET-005 "ready — see commit abc123"   # finished, needs a teammate to check
+getresolved issue approve  GET-005                               # reviewed and good → done
 getresolved issue done     GET-005 "Shipped in commit abc123"
 getresolved issue dismiss  GET-005 "duplicate of GET-002"
 getresolved issue reopen   GET-005
 getresolved issue assign   GET-005 me
+
+# Activity thread (private notes; never customer-facing)
+getresolved issue comment  GET-005 --body="…"
+getresolved issue comments GET-005
+
+# Hand off to the autonomous agent worker (Claude Code on the team's dev box)
+getresolved issue queue    GET-005                            # default agent, the branch its folder is on
+getresolved issue queue    GET-005 --new-branch               # default agent, a new branch for this task
+getresolved issue queue    GET-005 --agent=mikael-mac          # a specific agent
+getresolved issue queue    GET-005 GET-006 --branch=admin-ui   # several fixes onto one existing branch
+getresolved issue unqueue  GET-005                            # cancel
+getresolved agent branches                                    # branches the worker knows about
 ```
+
+Queued issues show `agent_state` (`queued → running → review | failed`) plus `target_branch`, `preview_url` and `pr_url` in `issue show`. The worker posts its progress to the activity thread (`issue comments`).
 
 #### Creating issues — `getresolved issue create` deduplicates by default
 
@@ -116,7 +138,7 @@ To bypass dedup (debugging only, or when the user explicitly says "skip dedup"):
 getresolved issue create --title="…" --no-dedup
 ```
 
-Issue statuses: `pending` → `in_progress` → `done` → `released` | `dismissed` (`released` is applied automatically when the issue is linked to a release).
+Issue statuses: `pending` → `in_progress` → `review` → `done` → `released` | `dismissed` (`released` is applied automatically when the issue is linked to a release). `review` means the work is finished and waiting for a teammate to check it: `getresolved issue review <id>` to hand it over, `getresolved issue approve <id>` (= done) once it's checked, `getresolved issue start <id>` to send it back. Fixes from the agent worker land in `review`.
 Priorities: `low`, `normal`, `high`, `urgent`.
 
 ### Conversations — tickets, ideas, feedback, chats
@@ -159,6 +181,14 @@ All `list` commands accept `--limit` (default 50, max 200) and `--offset` (defau
 1. `getresolved issue show <id> --json` — see the issue and which conversations raised it.
 2. For each linked conversation: `getresolved conversation show <id>` (read-only — do NOT call `reply`).
 3. `getresolved issue start <id>` to mark it in_progress.
+4. Optionally `getresolved issue comment <id> --body="…"` with a one-line plan, so teammates watching the board know what's happening.
+
+**"Send X to the agent" / "let the agent fix X" / "queue X"** — hand the issue to the autonomous worker instead of fixing it here:
+- Default: `getresolved issue queue <id>` — the default agent works on the branch its folder has checked out.
+- "…on a new branch" / "branch out": add `--new-branch`. "…on <agent>" / "on Mikael's machine": add `--agent=<name>`.
+- "…onto branch Y" / "on the Y branch" / "together with the other fixes on Y": `getresolved issue queue <id> --branch=Y`.
+- Never queue onto `main`/`master` or the product's base branch — the agent refuses protected branches. If the user asks for that, explain and suggest a branch to merge from.
+Then report the shortcode(s) and the branch. Check progress later with `getresolved issue show <id>` and `getresolved issue comments <id>`.
 
 **"Mark done and comment" / "commit and mark done & comment in get resolved"** — close out an issue after shipping:
 ```bash
